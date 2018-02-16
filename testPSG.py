@@ -1,8 +1,8 @@
 import wave
 import struct
-import TinyPSG
 import sys
 import pyaudio
+from tinyPSG import SampleGenerator
 
 # 48KHz
 SamplingFrequency = 48000
@@ -20,7 +20,7 @@ pya = pyaudio.PyAudio()
 stream = pya.open(format=pya.get_format_from_width(2), channels=1, rate=SamplingFrequency, output=True)
 
 # create PSG sample generator
-psg = TinyPSG.SampleGenerator(PSGMasterClockHz, SamplingFrequency)
+psg = SampleGenerator(PSGMasterClockHz, SamplingFrequency)
 
 #        o3c  o3d  o3e  o3f  o3g  o3a  o3b  o4c
 tunes = [855, 762, 679, 641, 571, 509, 453, 428]
