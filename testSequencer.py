@@ -1,9 +1,9 @@
 import wave
 import struct
-import TinyPSG
 import sys
-import Sequencer
 import pyaudio
+from fbdSequencer import Sequencer
+from tinyPSG import SampleGenerator
 
 # 48KHz
 SamplingFrequency = 48000
@@ -15,7 +15,7 @@ PSGMasterClockHz = 1789772
 IntervalRatioMul100 = 5994
 
 
-class FileData:
+class FileSource(Sequencer.Source):
     __wordUnpack = struct.Struct("<h")
 
     def __init__(self, filename):
@@ -26,13 +26,13 @@ class FileData:
         return self.__data[offset]
 
     def readWord(self, offset):
-        return FileData.__wordUnpack.unpack(self.__data[offset:offset + 2])[0]
+        return self.__wordUnpack.unpack(self.__data[offset:offset + 2])[0]
 
 samplingFrequencyMul100 = SamplingFrequency * 100
 
-data = FileData(sys.argv[1])
-psg = TinyPSG.SampleGenerator(PSGMasterClockHz, SamplingFrequency)
-sequencer = Sequencer.Sequencer(psg, data)
+data = FileSource(sys.argv[1])
+psg = SampleGenerator(PSGMasterClockHz, SamplingFrequency)
+sequencer = Sequencer(psg, data)
 print(sequencer.title)
 
 pya = pyaudio.PyAudio()

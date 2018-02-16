@@ -1,8 +1,17 @@
 from collections import deque
 from enum import Enum, auto
-
+from abc import ABCMeta, abstractmethod
 
 class Sequencer:
+    class Source(metaclass=ABCMeta):
+        @abstractmethod
+        def readByte(self, offset):
+            pass
+
+        @abstractmethod
+        def readWord(self, offset):
+            pass
+
     class Header:
         def __init__(self, sequenceData):
             offset = 0
