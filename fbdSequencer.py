@@ -24,15 +24,11 @@ class Sequencer:
                 title.append(ch)
             self._title = bytes(title).decode("utf8").replace("\n", " ")
             dataOffset = offset
-            offset += 2
-            self.__envelopTable = sequenceData.readWord(offset) + dataOffset
-            offset += 2
-            self.__channels = [0, 0, 0]
-            for i in range(3):
-                partOffset = sequenceData.readWord(offset)
-                offset += 2
-                self.__channels[i] = dataOffset + partOffset if partOffset != 0 else 0
-
+            self.__envelopTable = sequenceData.readWord(offset + 2) + dataOffset
+            self.__channels = [
+                self.__getPartOffset(dataOffset, sequenceData.readWord(offset + 4 + index * 2))
+                for index in range(3)]
+            
         @property
         def envelopeTable(self):
             return self.__envelopTable
@@ -44,6 +40,10 @@ class Sequencer:
         @property
         def title(self):
             return self._title
+            
+        @staticmethod
+        def __getPartOffset(dataOffset, partOffset):
+            return dataOffset + partOffset if partOffset != 0 else None
 
     class Context:
         _tuneTable = [3816, 3602, 3400, 3209, 3029, 2859, 2698, 2547, 2404, 2269, 2142, 2022]
@@ -317,11 +317,9 @@ class Sequencer:
                 elif data == 0xe5:
                     self.__context.setNoiseFrequency(frequency=self.__nextByte())
                 elif data == 0xe6:
-                    if self.__volume != 15:
-                        self.__volume += 1
+                    self.__volume += 0 if self.__volume == 15 else 1
                 elif data == 0xe7:
-                    if self.__volume != 0:
-                        self.__volume -= 1
+                    self.__volume -= 0 if self.__volume == 0 else 1
                 elif data == 0xe9:
                     self.__detune = self.__nextWord()
                 elif data == 0xea:
@@ -329,7 +327,7 @@ class Sequencer:
                     speed = self.__nextByte()
                     depth = self.__nextByte()
                     value = self.__nextWord()
-                    self.__lfo = self.LFO(True, delay, speed, depth, value)
+                    self.__lfo = self.LFO(True, delay if delay != 0 else 256, speed, depth, value)
                 elif data == 0xeb:
                     self.__lfo.setEnable(True if self.__nextByte() != 0 else False)
                 elif data == 0xec:
@@ -340,31 +338,20 @@ class Sequencer:
                     return False
 
     def __init__(self, psg, sequenceData):
-        self.__psg = psg
-        self.__sequenceData = sequenceData
-        self.__header = self.Header(self.__sequenceData)
-        context = self.Context(self.__psg, self.__sequenceData, self.__header.envelopeTable)
-        self.__parts = [None for i in range(3)]
-        self.__playPart = 0
-        partMask = 0x01
-        for channelNumber, offset in enumerate(self.__header.channels):
-            if offset != 0:
-                self.__parts[channelNumber] = self.Part(context, channelNumber, offset)
-                self.__playPart |= partMask
-            partMask <<= 1
+        header = self.Header(sequenceData)
+        self.__title = header.title;
+        context = self.Context(psg, sequenceData, header.envelopeTable)
+        self.__parts = [self.Part(context, channelNumber, offset) for (channelNumber, offset) in enumerate(header.channels) if offset != None]
 
     def tick(self):
-        partMask = 0x01
-        for part in self.__parts:
-            if (self.__playPart & partMask) != 0:
-                if not part.tick():
-                    self.__playPart ^= partMask
-            partMask <<= 1
+        for (index, part) in enumerate(self.__parts):
+            if part != None and not part.tick():
+                self.__parts[index] = None
 
     @property
     def title(self):
-        return self.__header.title
+        return self.__title
 
     @property
     def isPlaying(self):
-        return self.__playPart != 0
+        return None not in self.__parts
