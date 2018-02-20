@@ -16,10 +16,10 @@ IntervalRatioMul100 = 5994
 
 
 class FileSource(Sequencer.Source):
-    __wordUnpack = struct.Struct("<h")
+    __wordUnpack = struct.Struct('<h')
 
     def __init__(self, filename):
-        with open(filename, "rb") as f:
+        with open(filename, 'rb') as f:
             self.__data = f.read()
 
     def readByte(self, offset):
