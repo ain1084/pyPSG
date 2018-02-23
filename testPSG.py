@@ -10,14 +10,14 @@ SamplingFrequency = 48000
 # 1.789772MHz
 PSGMasterClockHz = 1789772
 
+PLAY_LENGTH = int(SamplingFrequency / 2)
 
 def play(stream, psg):
-	data = [int(psg.nextSample() * 32767) for i in range(int(SamplingFrequency / 2))]
-	stream.write(struct.pack('h' * len(data), *data))
+	stream.write(struct.pack(str(PLAY_LENGTH) + 'f', *[psg.nextSample() for _ in range(PLAY_LENGTH)]))
 
 # prepare audio device
 pya = pyaudio.PyAudio()
-stream = pya.open(format=pya.get_format_from_width(2), channels=1, rate=SamplingFrequency, output=True)
+stream = pya.open(format=pyaudio.paFloat32, channels=1, rate=SamplingFrequency, output=True)
 
 # create PSG sample generator
 psg = SampleGenerator(PSGMasterClockHz, SamplingFrequency)
@@ -61,6 +61,6 @@ psg[2].setMode(isToneOn=True, isNoiseOn=False)
 psg[2].setVolume(12)
 for i in tunes:
 	psg[0].setTune(int(i / 2))
-	psg[1].setTune(int(i / 2)-1)
-	psg[2].setTune(int(i / 2)+1)
+	psg[1].setTune(int(i / 2)-2)
+	psg[2].setTune(int(i / 2)+2)
 	play(stream, psg)

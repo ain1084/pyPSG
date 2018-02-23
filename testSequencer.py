@@ -36,13 +36,12 @@ sequencer = Sequencer(psg, data)
 print(sequencer.title)
 
 pya = pyaudio.PyAudio()
-stream = pya.open(format=pya.get_format_from_width(2), channels=1, rate=SamplingFrequency, output=True)
+stream = pya.open(format=pyaudio.paFloat32, channels=1, rate=SamplingFrequency, output=True)
 sampleCountError = 0
 try:
     while sequencer.isPlaying:
         sequencer.tick()
         (sampleCount, sampleCountError) = divmod(samplingFrequencyMul100 + sampleCountError, IntervalRatioMul100)
-        data = [int(psg.nextSample() * 32767) for i in range(sampleCount)]
-        stream.write(struct.pack('h' * len(data), *data))
+        stream.write(struct.pack(str(sampleCount) + 'f', *[psg.nextSample() for _ in range(sampleCount)]))
 except KeyboardInterrupt:
     pass
