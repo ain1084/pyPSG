@@ -29,9 +29,9 @@ class FileSource(Sequencer.Source):
         return self.__wordUnpack.unpack(self.__data[offset:offset + 2])[0]
 
 def sampleCountToTime(sampleCount):
-    (sec, sampleMod)  = divmod(sampleCount, SamplingFrequency)
-    min = int(sec / 60)
-    hour = int(min / 60)
+    (sampleSecond, sampleMod)  = divmod(sampleCount, SamplingFrequency)
+    (hour, sampleSecond) = divmod(sampleSecond, 3600)
+    (min, sec) = divmod(sampleSecond % 3600, 60)
     millisec = int(sampleMod / SamplingFrequency * 1000)
     return (hour, min, sec, millisec)
         
