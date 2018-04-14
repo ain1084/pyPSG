@@ -31,7 +31,6 @@ class SampleGenerator:
                 self.__error = 0
                 self.__tuneMin = self.__masterFrequency / self.__samplingFrequencyMul8 + 1
                 self.__source = self.__tuneMin * self.__samplingFrequencyMul8
-                self.__update = False
                 self.__output = False
 
             def setTune(self, tune):
@@ -40,16 +39,13 @@ class SampleGenerator:
                 elif tune < self.__tuneMin:
                     tune = self.__tuneMin
                 self.__nextSource = int(tune) * self.__samplingFrequencyMul8
-                self.__update = True
 
             def update(self):
                 self.__error -= self.__masterFrequency
                 if self.__error < 0:
                     self.__error += self.__source
                     self.__output = ~self.__output & 0x1
-                    if self.__update:
-                        self.__update = False
-                        self.__source = self.__nextSource
+                    self.__source = self.__nextSource
                 return self.__output
 
         def __init__(self, channelNumber, masterFrequency, samplingFrequency):
@@ -79,28 +75,20 @@ class SampleGenerator:
             self.__nextSource = 0
             self.__error = 0
             self.__source = 0
-            self.__target = 0
             self.__shift = 1
-            self.__update = False
             self.__output = False
 
         def setTune(self, tune):
             self.__nextSource = int(tune) * self.__samplingFrequencyDiv64
-            self.__update = True
 
         def update(self):
             if self.__error > 0:
-                self.__error -= self.__target
+                self.__error -= self.__masterFrequencyDiv1024
             if self.__error <= 0:
                 self.__error += self.__source
+                self.__shift = ((self.__shift >> 1) | ((self.__shift ^ (self.__shift >> 3)) << 15)) & 0xFFFF
                 self.__output = self.__shift & 0x1
-                self.__shift >>= 1
-                if self.__output:
-                    self.__shift ^= 0x911a
-            if self.__update:
-                self.__update = False
                 self.__source = self.__nextSource
-                self.__target = self.__masterFrequencyDiv1024
             return self.__output
 
     def __init__(self, masterFrequency, samplingFrequency):
