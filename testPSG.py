@@ -55,8 +55,6 @@ psg[0].setMode(isToneOn=True, isNoiseOn=False)
 psg[0].setVolume(12)
 psg[1].setMode(isToneOn=True, isNoiseOn=False)
 psg[1].setVolume(12)
-psg[0].setMode(isToneOn=True, isNoiseOn=False)
-psg[0].setVolume(12)
 psg[2].setMode(isToneOn=True, isNoiseOn=False)
 psg[2].setVolume(12)
 for i in tunes:

@@ -28,6 +28,13 @@ class FileSource(Sequencer.Source):
     def readWord(self, offset):
         return self.__wordUnpack.unpack(self.__data[offset:offset + 2])[0]
 
+def sampleCountToTime(sampleCount):
+    (sampleSecond, sampleMod)  = divmod(sampleCount, SamplingFrequency)
+    (hour, sampleSecond) = divmod(sampleSecond, 3600)
+    (min, sec) = divmod(sampleSecond % 3600, 60)
+    millisec = int(sampleMod / SamplingFrequency * 1000)
+    return (hour, min, sec, millisec)
+        
 samplingFrequencyMul100 = SamplingFrequency * 100
 
 data = FileSource(sys.argv[1])
@@ -38,10 +45,16 @@ print(sequencer.title)
 pya = pyaudio.PyAudio()
 stream = pya.open(format=pyaudio.paFloat32, channels=1, rate=SamplingFrequency, output=True)
 sampleCountError = 0
+totalSampleCount = 0
 try:
     while sequencer.isPlaying:
+        (hour, min, sec, millisec) = sampleCountToTime(totalSampleCount)
+        print('%02d:%02d:%02d.%02d Loop:%d' % (hour, min, sec, int(millisec / 10), sequencer.loopCount), end='\r')
         sequencer.tick()
         (sampleCount, sampleCountError) = divmod(samplingFrequencyMul100 + sampleCountError, IntervalRatioMul100)
         stream.write(struct.pack(str(sampleCount) + 'f', *[psg.nextSample() for _ in range(sampleCount)]))
+        totalSampleCount += sampleCount
+        
+        
 except KeyboardInterrupt:
     pass
