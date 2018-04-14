@@ -220,12 +220,13 @@ class Sequencer:
 
             def end(self, offset):
                 data = self.__deque[0]
-                if data.count == 0 or data.countDown() != 0:
+                isInfiniteLoop = data.count == 0
+                if isInfiniteLoop or data.countDown() != 0:
                     data.end = offset
                     offset = data.start
                 else:
                     self.__deque.popleft()
-                return offset
+                return (offset, isInfiniteLoop)
 
         def __init__(self, context, channelNumber, offset):
             self.__context = context
@@ -241,7 +242,8 @@ class Sequencer:
             self.__repeat = self.RepeatStack()
             self.__lfo = self.LFO(False)
             self.__channel.setMode(True, False)
-
+            self.__infiniteLoopCount = 0
+            
         def __nextByte(self):
             data = self.__context.readByte(self.__nextOffset)
             self.__nextOffset += 1
@@ -313,7 +315,8 @@ class Sequencer:
                 elif data == 0xe3:
                     self.__nextOffset = self.__repeat.breakIfLast(self.__nextOffset)
                 elif data == 0xe4:
-                    self.__nextOffset = self.__repeat.end(self.__nextOffset)
+                    (self.__nextOffset, isInfiniteLoop) = self.__repeat.end(self.__nextOffset)
+                    self.__infiniteLoopCount += 1 if isInfiniteLoop else 0
                 elif data == 0xe5:
                     self.__context.setNoiseFrequency(frequency=self.__nextByte())
                 elif data == 0xe6:
@@ -337,6 +340,10 @@ class Sequencer:
                     self.__channel.setVolume(0)
                     return False
 
+        @property
+        def infiniteLoopCount(self):
+            return self.__infiniteLoopCount
+                    
     def __init__(self, psg, sequenceData):
         header = self.Header(sequenceData)
         self.__title = header.title;
@@ -348,6 +355,10 @@ class Sequencer:
             if part != None and not part.tick():
                 self.__parts[index] = None
 
+    @property
+    def loopCount(self):
+        return min(part.infiniteLoopCount for part in self.__parts if part != None)
+                
     @property
     def title(self):
         return self.__title
