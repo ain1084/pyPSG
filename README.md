@@ -11,5 +11,5 @@ Requires python 3.6 or later and pyaudio library.
   <dd>This is tinyPSG.py sample program.Play test sound.</dd>
 
   <dt>testSequencer.py</dt>
-  <dd>This is music sequencer by tinyPSG. Play sequence (.fbd) file.</dd>
+  <dd>This is music sequencer by tinyPSG. Play sequence (.fbd) file.<br/>ex.: testSequencer.py data/YS205.fbd</dd>
 </dl>
