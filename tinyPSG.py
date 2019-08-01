@@ -27,10 +27,10 @@ class SampleGenerator:
             def __init__(self, masterFrequency, samplingFrequency):
                 self.__masterFrequency = int(masterFrequency)
                 self.__samplingFrequencyMul8 = int(samplingFrequency) << 3
-                self.__nextSource = 0
-                self.__error = 0
+                self.__error = self.__masterFrequency
                 self.__tuneMin = self.__masterFrequency / self.__samplingFrequencyMul8 + 1
                 self.__source = self.__tuneMin * self.__samplingFrequencyMul8
+                self.__nextSource = self.__source
                 self.__output = False
 
             def setTune(self, tune):
@@ -70,21 +70,25 @@ class SampleGenerator:
 
     class NoiseGenerator:
         def __init__(self, masterFrequency, samplingFrequency):
-            self.__masterFrequencyDiv1024 = int(masterFrequency) >> 10
-            self.__samplingFrequencyDiv64 = int(samplingFrequency) >> 6
-            self.__nextSource = 0
-            self.__error = 0
-            self.__source = 0
+            self.__masterFrequency = int(masterFrequency)
+            self.__samplingFrequencyMul16 = int(samplingFrequency) << 4
+            self.__error = self.__masterFrequency
+            self.__tuneMin = self.__masterFrequency / self.__samplingFrequencyMul16 + 1
+            self.__source = self.__tuneMin * self.__samplingFrequencyMul16
+            self.__nextSource = self.__source
             self.__shift = 1
             self.__output = False
 
         def setTune(self, tune):
-            self.__nextSource = int(tune) * self.__samplingFrequencyDiv64
+            if tune > 31:
+                tune = 31
+            elif tune < self.__tuneMin:
+                tune = self.__tuneMin
+            self.__nextSource = int(tune) * self.__samplingFrequencyMul16
 
         def update(self):
-            if self.__error > 0:
-                self.__error -= self.__masterFrequencyDiv1024
-            if self.__error <= 0:
+            self.__error -= self.__masterFrequency
+            if self.__error < 0:
                 self.__error += self.__source
                 self.__shift = ((self.__shift >> 1) | ((self.__shift ^ (self.__shift >> 3)) << 15)) & 0xFFFF
                 self.__output = self.__shift & 0x1
