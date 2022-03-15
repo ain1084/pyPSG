@@ -37,6 +37,7 @@ Example:
 ```
 # python3(py) fbdplayer.py data/YS205.fbd
 ```
+**If you get "output underflow", try increasing the value of BUFFER_BLOCK_SIZE in fbdplayer.py.**
 
 ### `fbdwave.py`
 
