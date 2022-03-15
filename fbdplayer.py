@@ -138,31 +138,6 @@ class Player:
             end="\r", flush=True
         )
 
-
-def test_write(data_reader: fbd.Sequencer.DataReader):
-    with wave.open("test.wav", "w") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SAMPLING_FREQUENCY_HZ)
-        sample_generator = pypsg.SampleGenerator(PSG_MASTER_CLOCK_HZ, SAMPLING_FREQUENCY_HZ)
-        sequencer = fbd.Sequencer(sample_generator, data_reader)
-        generator = fbd.SequenceSampleBlockGenerator(
-            sequencer, sample_generator, INTERVAL_RATIO_HZ
-        )
-        print(sequencer.title)
-        while True:
-            if sequencer.loop_count != 0:
-                break
-            block = generator.next(BUFFER_BLOCK_SIZE)
-            if not block:
-                break
-            wf.writeframes(
-                struct.pack("h" * len(block), *[int(value * 32767) for value in block])
-            )
-            print(".", end="", flush=True)
-    print('')
-
-
 async def main() -> None:
     data_reader = FileDataReader(sys.argv[1])
     # test_write(data_reader)
