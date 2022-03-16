@@ -3,8 +3,7 @@ The pyPSG is PSG (Programmable sound generator. aka. AY-3-8910) simplified emula
 
 ## Requirements
 
-- python 3.7 (or better).
-- [python-sounddevice](https://python-sounddevice.readthedocs.io/) library.
+- python 3.7 (or later).
 
 ## Functions
 
@@ -35,7 +34,7 @@ The pyPSG is PSG (Programmable sound generator. aka. AY-3-8910) simplified emula
 
 Plays the "fbd" file specified by the first argument.
 
-*Requires [janus](https://github.com/aio-libs/janus) library.*
+*Requires [janus](https://github.com/aio-libs/janus), [python-sounddevice](https://python-sounddevice.readthedocs.io/) library.*
 
 Example:
 ```
