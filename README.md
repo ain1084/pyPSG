@@ -25,6 +25,10 @@ The pyPSG is PSG (Programmable sound generator. aka. AY-3-8910) simplified emula
 |`fbdwave.py`|An executable module that uses the fbd module to generate a .wav from a "fbd" file.|
 |data/|There are music files that can be used with fbdplayer and fdbwave.|
 
+## pypsg.SampleGenerator block diagram
+
+![pypsg-SampleGenerator](https://user-images.githubusercontent.com/14823909/158614784-47f93410-546d-42e8-8fe6-ce6f25274dce.png)
+
 ## Usage
 
 ### `fbdplayer.py`
